@@ -33,6 +33,7 @@ const DNA_DELIMITER = "-";
 const HashlipsGiffer = require(`${basePath}/modules/HashlipsGiffer.js`);
 var seedrandom = require('seedrandom');
 var rng = seedrandom('lazynaire');
+var traitPair = new Map();
 
 let hashlipsGiffer = null;
 
@@ -282,6 +283,38 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
   return !_DnaList.has(_filteredDNA);
 };
 
+// const createDna = (_layers) => {
+//   let randNum = [];
+//   _layers.forEach((layer) => {
+//     var totalWeight = 0;
+//   layer.elements.forEach((element) => {
+//     totalWeight += element.weight;
+//   });
+//     // number between 0 - totalWeight
+//     //let random = Math.floor(Math.random() * totalWeight);
+//     //RNG based on seed
+//     //console.log(pairTraitConfig)
+//     let random = Math.floor(rng() * totalWeight);
+//     for (var i = 0; i < layer.elements.length; i++) {
+//       // subtract the current weight from the random weight until we reach a sub zero value.
+//       random -= layer.elements[i].weight;
+//       if (random < 0) {
+//         // //pair traits based on pairTraitConfig
+//         // if(hasChildLayer(layer.name)) {
+//         //   //const childPair = getChildTraits(layer.elements[i].name);
+//         //   //traitPair.set(layer.elements[i].name, childPair);
+//         // }
+//         return randNum.push(
+//           `${layer.elements[i].id}:${layer.elements[i].filename}${
+//             layer.bypassDNA ? "?bypassDNA=true" : ""
+//           }`
+//         );
+//       }
+//     }
+//   });
+//   return randNum.join(DNA_DELIMITER);
+// };
+
 const createDna = (_layers) => {
   let randNum = [];
   _layers.forEach((layer) => {
@@ -289,28 +322,40 @@ const createDna = (_layers) => {
     layer.elements.forEach((element) => {
       totalWeight += element.weight;
     });
-    // number between 0 - totalWeight
-    //let random = Math.floor(Math.random() * totalWeight);
-    //RNG based on seed
-    //console.log(pairTraitConfig)
-    console.log(layer)
     let random = Math.floor(rng() * totalWeight);
     for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        //console.log(layer.elements[i].name)
-        
-        return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}${
-            layer.bypassDNA ? "?bypassDNA=true" : ""
-          }`
+        // Check if the current element has a paired child trait
+        const parentTrait = layer.elements[i].id;
+        const pairConfig = pairTraitConfig.find(
+          (pair) => pair.parentTrait === parentTrait
         );
+        if (pairConfig) {
+          // If a paired child trait exists, use it
+          const childTrait =
+            pairConfig.childTrait[
+              Math.floor(Math.random() * pairConfig.childTrait.length)
+            ];
+          return randNum.push(
+            `${layer.elements[i].id}:${layer.elements[i].filename}${
+              layer.bypassDNA ? "?bypassDNA=true" : ""
+            },${childTrait}:${layer.elements.find((x) => x.id === childTrait).filename}`
+          );
+        } else {
+          // If no paired child trait exists, use the original logic
+          return randNum.push(
+            `${layer.elements[i].id}:${layer.elements[i].filename}${
+              layer.bypassDNA ? "?bypassDNA=true" : ""
+            }`
+          );
+        }
       }
     }
   });
   return randNum.join(DNA_DELIMITER);
 };
+
 
 const writeMetaData = (_data) => {
   fs.writeFileSync(`${buildDir}/json/_metadata.json`, _data);
@@ -368,7 +413,7 @@ const startCreating = async () => {
     while (
       editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
     ) {
-      let newDna = createDna(layers);
+      let newDna = createDna(layers, pairTraitConfig);
       if (isDnaUnique(dnaList, newDna)) {
         let results = constructLayerToDna(newDna, layers);
         let loadedElements = [];
@@ -437,5 +482,19 @@ const startCreating = async () => {
   }
   writeMetaData(JSON.stringify(metadataList, null, 2));
 };
+
+function hasChildLayer(_layersName) {
+  let hasParent = false;
+  pairTraitConfig.forEach(function(trait) {
+    if(_layersName == trait.parentlayer) {
+      console.log(_layersName, trait.childLayer)
+      console.log("return true")
+      hasParent =  true;
+    }
+  })
+  return hasParent;
+};
+
+//function getChildTraits(_)
 
 module.exports = { startCreating, buildSetup, getElements };

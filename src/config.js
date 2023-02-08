@@ -25,7 +25,7 @@ const baseUri = "ipfs://NewUriToReplace";
 const layerConfigurations = [
   {
     //Low tier
-    growEditionSizeTo: 1,
+    growEditionSizeTo: 100,
     layersOrder: [
       { name: "Background" },
       { name: "Type" },
