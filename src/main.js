@@ -283,73 +283,50 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
   return !_DnaList.has(_filteredDNA);
 };
 
-// const createDna = (_layers) => {
-//   let randNum = [];
-//   _layers.forEach((layer) => {
-//     var totalWeight = 0;
-//   layer.elements.forEach((element) => {
-//     totalWeight += element.weight;
-//   });
-//     // number between 0 - totalWeight
-//     //let random = Math.floor(Math.random() * totalWeight);
-//     //RNG based on seed
-//     //console.log(pairTraitConfig)
-//     let random = Math.floor(rng() * totalWeight);
-//     for (var i = 0; i < layer.elements.length; i++) {
-//       // subtract the current weight from the random weight until we reach a sub zero value.
-//       random -= layer.elements[i].weight;
-//       if (random < 0) {
-//         // //pair traits based on pairTraitConfig
-//         // if(hasChildLayer(layer.name)) {
-//         //   //const childPair = getChildTraits(layer.elements[i].name);
-//         //   //traitPair.set(layer.elements[i].name, childPair);
-//         // }
-//         return randNum.push(
-//           `${layer.elements[i].id}:${layer.elements[i].filename}${
-//             layer.bypassDNA ? "?bypassDNA=true" : ""
-//           }`
-//         );
-//       }
-//     }
-//   });
-//   return randNum.join(DNA_DELIMITER);
-// };
-
 const createDna = (_layers) => {
   let randNum = [];
+  let parentChildMapping = new Map();
+  let hasChildTrait = false;
   _layers.forEach((layer) => {
     var totalWeight = 0;
-    layer.elements.forEach((element) => {
-      totalWeight += element.weight;
-    });
+
+  // Check if the current layer has a child layer
+  //console.log("layer.name: ",layer.name);
+  if (hasChildLayer(layer.name)) {
+    parentChildMapping.set(layer.name, getChildLayer(layer.name));
+    hasChildTrait = true;
+    console.log(parentChildMapping);
+  }
+
+  layer.elements.forEach((element) => {
+    totalWeight += element.weight;
+  });
+    // number between 0 - totalWeight
+    //let random = Math.floor(Math.random() * totalWeight);
+    //RNG based on seed
+    //console.log(pairTraitConfig)
+
     let random = Math.floor(rng() * totalWeight);
     for (var i = 0; i < layer.elements.length; i++) {
+      // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        // Check if the current element has a paired child trait
-        const parentTrait = layer.elements[i].id;
-        const pairConfig = pairTraitConfig.find(
-          (pair) => pair.parentTrait === parentTrait
+        // //pair traits based on pairTraitConfig
+        // if(hasChildLayer(layer.name)) {
+        //   //const childPair = getChildTraits(layer.elements[i].name);
+        //   //traitPair.set(layer.elements[i].name, childPair);
+        // }
+
+        //might need to move this to before trait was selected
+        if(hasChildTrait)
+          getChildTraits(layer.elements[i].name);
+        hasChildTrait = false;
+
+        return randNum.push(
+          `${layer.elements[i].id}:${layer.elements[i].filename}${
+            layer.bypassDNA ? "?bypassDNA=true" : ""
+          }`
         );
-        if (pairConfig) {
-          // If a paired child trait exists, use it
-          const childTrait =
-            pairConfig.childTrait[
-              Math.floor(Math.random() * pairConfig.childTrait.length)
-            ];
-          return randNum.push(
-            `${layer.elements[i].id}:${layer.elements[i].filename}${
-              layer.bypassDNA ? "?bypassDNA=true" : ""
-            },${childTrait}:${layer.elements.find((x) => x.id === childTrait).filename}`
-          );
-        } else {
-          // If no paired child trait exists, use the original logic
-          return randNum.push(
-            `${layer.elements[i].id}:${layer.elements[i].filename}${
-              layer.bypassDNA ? "?bypassDNA=true" : ""
-            }`
-          );
-        }
       }
     }
   });
@@ -486,15 +463,53 @@ const startCreating = async () => {
 function hasChildLayer(_layersName) {
   let hasParent = false;
   pairTraitConfig.forEach(function(trait) {
-    if(_layersName == trait.parentlayer) {
-      console.log(_layersName, trait.childLayer)
-      console.log("return true")
+    console.log(_layersName == trait.parentlayer)
+    if(_layersName == trait.parentLayer) {
       hasParent =  true;
+      return hasParent;
     }
   })
   return hasParent;
 };
 
-//function getChildTraits(_)
+function getChildLayer(_parentLayer) {
+  let childTraits = [];
+  pairTraitConfig.forEach(function(trait) {
+    if (_parentLayer === trait._parentLayer) {
+      childTraits.push(trait.childLayer);
+    }
+  });
+  console.log("parentTraits: ", _parentLayer);
+  console.log("childTraits: ", childTraits);
+  return childTraits;
+}
+
+function getChildTraits(_parentTrait) {
+  let childTraits = [];
+  pairTraitConfig.forEach(function(trait) {
+    trait.pairConfig.forEach(function(pair) {
+      if (_parentTrait === pair.parentTrait) {
+        childTraits = pair.childTrait;
+      }
+    });
+  });
+  console.log("parentTraits: ", _parentTrait);
+  console.log("childTraits: ", childTraits);
+  return childTraits;
+}
+
+// function getChildTraits(_parentTrait) {
+//   let childTraits = [];
+//   pairTraitConfig.forEach(function(trait) {
+//     console.log("trait.parentTrait: ", trait.parentTrait);
+//     if (trait.parentTrait === _parentTrait) {
+//       childTraits = trait.childTraits;
+//       return;
+//     }
+//   });
+//   console.log("parentTraits: ", _parentTrait);
+//   console.log("childTraits: ", childTraits);
+//   return childTraits;
+// }
 
 module.exports = { startCreating, buildSetup, getElements };
