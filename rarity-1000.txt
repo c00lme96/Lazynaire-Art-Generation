@@ -1,0 +1,201 @@
+Trait type Background
+{
+  trait 'Blue B1 ',
+  weight '60',
+  occurrence '578 in 1000 editions (57.80 %)'
+}
+{
+  trait 'Home ABC ',
+  weight '10',
+  occurrence '100 in 1000 editions (10.00 %)'
+}
+{
+  trait 'Pink C2 ',
+  weight '30',
+  occurrence '322 in 1000 editions (32.20 %)'
+}
+
+Trait type Type
+{
+  trait 'Biege Y',
+  weight '10',
+  occurrence '339 in 1000 editions (33.90 %)'
+}
+{
+  trait 'Earth Z',
+  weight '10',
+  occurrence '320 in 1000 editions (32.00 %)'
+}
+{
+  trait 'Sandy X',
+  weight '10',
+  occurrence '341 in 1000 editions (34.10 %)'
+}
+
+Trait type Eyes
+{
+  trait 'Caring ',
+  weight '60',
+  occurrence '604 in 1000 editions (60.40 %)'
+}
+{
+  trait 'Focused ',
+  weight '10',
+  occurrence '104 in 1000 editions (10.40 %)'
+}
+{
+  trait 'Lazy ',
+  weight '30',
+  occurrence '292 in 1000 editions (29.20 %)'
+}
+
+Trait type Mouth
+{
+  trait 'Joy ',
+  weight '60',
+  occurrence '603 in 1000 editions (60.30 %)'
+}
+{
+  trait 'Kiss ',
+  weight '10',
+  occurrence '83 in 1000 editions (8.30 %)'
+}
+{
+  trait 'Smile ',
+  weight '30',
+  occurrence '314 in 1000 editions (31.40 %)'
+}
+
+Trait type Hair
+{
+  trait 'Cute Pixie A1 ',
+  weight '60',
+  occurrence '596 in 1000 editions (59.60 %)'
+}
+{
+  trait 'Pageboy B2 ',
+  weight '30',
+  occurrence '310 in 1000 editions (31.00 %)'
+}
+{
+  trait 'Retro Curls ABC ',
+  weight '10',
+  occurrence '94 in 1000 editions (9.40 %)'
+}
+
+Trait type OOTD
+{
+  trait 'Classic Jumper A2 ',
+  weight '30',
+  occurrence '295 in 1000 editions (29.50 %)'
+}
+{
+  trait 'Peter Pan Blouse C1 ',
+  weight '60',
+  occurrence '599 in 1000 editions (59.90 %)'
+}
+{
+  trait 'Scallop V Top ABC ',
+  weight '10',
+  occurrence '106 in 1000 editions (10.60 %)'
+}
+
+Trait type Face
+{
+  trait 'Masque ABC ',
+  weight '10',
+  occurrence '112 in 1000 editions (11.20 %)'
+}
+{
+  trait 'Masque B2 ',
+  weight '10',
+  occurrence '115 in 1000 editions (11.50 %)'
+}
+{
+  trait 'Round Glasses A2 ',
+  weight '50',
+  occurrence '468 in 1000 editions (46.80 %)'
+}
+{
+  trait 'Sleeping Mask C2 ',
+  weight '30',
+  occurrence '305 in 1000 editions (30.50 %)'
+}
+
+Trait type Headwear
+{
+  trait 'Alice Band D ',
+  weight '60',
+  occurrence '588 in 1000 editions (58.80 %)'
+}
+{
+  trait 'Cocktail Hat ABC ',
+  weight '10',
+  occurrence '114 in 1000 editions (11.40 %)'
+}
+{
+  trait 'Newsboy C2 ',
+  weight '30',
+  occurrence '298 in 1000 editions (29.80 %)'
+}
+
+Trait type Earwear
+{
+  trait 'Nothing',
+  weight '10',
+  occurrence '103 in 1000 editions (10.30 %)'
+}
+{
+  trait 'Pearl ',
+  weight '60',
+  occurrence '535 in 1000 editions (53.50 %)'
+}
+{
+  trait 'Pearl Drop ',
+  weight '10',
+  occurrence '103 in 1000 editions (10.30 %)'
+}
+{
+  trait 'Shape C2 ',
+  weight '30',
+  occurrence '259 in 1000 editions (25.90 %)'
+}
+
+Trait type Neckwear
+{
+  trait 'Beaded Necklace ',
+  weight '10',
+  occurrence '219 in 1000 editions (21.90 %)'
+}
+{
+  trait 'Bow Tie Choker D ',
+  weight '30',
+  occurrence '583 in 1000 editions (58.30 %)'
+}
+{
+  trait 'Choker D ',
+  weight '10',
+  occurrence '198 in 1000 editions (19.80 %)'
+}
+
+Trait type Hand
+{
+  trait 'Nothing',
+  weight '10',
+  occurrence '524 in 1000 editions (52.40 %)'
+}
+{
+  trait 'Shhh X',
+  weight '10',
+  occurrence '162 in 1000 editions (16.20 %)'
+}
+{
+  trait 'Shhh Y',
+  weight '10',
+  occurrence '168 in 1000 editions (16.80 %)'
+}
+{
+  trait 'Shhh Z',
+  weight '10',
+  occurrence '146 in 1000 editions (14.60 %)'
+}

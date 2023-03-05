@@ -32,7 +32,7 @@ var dnaList = new Set();
 const DNA_DELIMITER = "-";
 const HashlipsGiffer = require(`${basePath}/modules/HashlipsGiffer.js`);
 var seedrandom = require('seedrandom');
-var rng = seedrandom('lazynaire');
+var rng = seedrandom('1');
 var traitPair = new Map();
 
 let hashlipsGiffer = null;
@@ -207,18 +207,18 @@ const drawElement = (_renderObject, _index, _layersLen) => {
   ctx.globalCompositeOperation = _renderObject.layer.blend;
   text.only
     ? addText(
-        `${_renderObject.layer.name}${text.spacer}${_renderObject.layer.selectedElement.name}`,
-        text.xGap,
-        text.yGap * (_index + 1),
-        text.size
-      )
+      `${_renderObject.layer.name}${text.spacer}${_renderObject.layer.selectedElement.name}`,
+      text.xGap,
+      text.yGap * (_index + 1),
+      text.size
+    )
     : ctx.drawImage(
-        _renderObject.loadedImage,
-        0,
-        0,
-        format.width,
-        format.height
-      );
+      _renderObject.loadedImage,
+      0,
+      0,
+      format.width,
+      format.height
+    );
 
   addAttributes(_renderObject);
 };
@@ -285,51 +285,120 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
 
 const createDna = (_layers) => {
   let randNum = [];
-  let parentChildMapping = new Map();
-  let hasChildTrait = false;
+  //let parentChildLayerMapping = new Map();
+  let parentChildTraitMapping = new Map();
+  let hasChildLayerBool = false;
+  let childTraits = [];
+  let pairLayer = [];
+  let backupPairLayer = [];
   _layers.forEach((layer) => {
     var totalWeight = 0;
 
-  // Check if the current layer has a child layer
-  //console.log("layer.name: ",layer.name);
-  if (hasChildLayer(layer.name)) {
-    parentChildMapping.set(layer.name, getChildLayer(layer.name));
-    hasChildTrait = true;
-    console.log(parentChildMapping);
-  }
+    // Check if the current layer has a child layer
+    //console.log("layer.name: ",layer.name);
+    if (hasChildLayer(layer.name)) {
+      //parentChildLayerMapping.set(layer.name, getChildLayer(layer.name));
+      hasChildLayerBool = true;
+      //console.log("parentChildLayerMapping: ",parentChildLayerMapping);
+    }
 
-  layer.elements.forEach((element) => {
-    totalWeight += element.weight;
-  });
+    if (hasParentLayer(layer.name)) {
+      layer.elements.forEach((element) => {
+        //console.log("element: ",element);
+        //console.log("childTraits: ", childTraits);
+        childTraits.forEach((childTrait) => {
+          //console.log(`element.name: ${element.name}, childTrait: ${childTrait}`);
+          if (element.name === childTrait) {
+            let adjustedWeight = adjustWeight(childTrait, layer.name, _layers);
+            let tempElement = Object.assign({},element);
+            //console.log("elment before: ", element);
+            tempElement.weight = adjustedWeight;
+            //console.log("element after: ", element);
+            pairLayer.push(tempElement);
+            //console.log("pairLayer pushed: ", tempElement);
+            backupPairLayer.push(element);
+
+            totalWeight += adjustedWeight;
+          }
+        })
+      });
+      //console.log("pairLayer: ", pairLayer);
+      //console.log("backupPairLayer: ", backupPairLayer);
+    }
+    else {
+      layer.elements.forEach((element) => {
+        totalWeight += element.weight;
+      });
+    }
+
+
     // number between 0 - totalWeight
     //let random = Math.floor(Math.random() * totalWeight);
     //RNG based on seed
     //console.log(pairTraitConfig)
 
     let random = Math.floor(rng() * totalWeight);
-    for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
-      random -= layer.elements[i].weight;
-      if (random < 0) {
-        // //pair traits based on pairTraitConfig
-        // if(hasChildLayer(layer.name)) {
-        //   //const childPair = getChildTraits(layer.elements[i].name);
-        //   //traitPair.set(layer.elements[i].name, childPair);
-        // }
 
-        //might need to move this to before trait was selected
-        if(hasChildTrait)
-          getChildTraits(layer.elements[i].name);
-        hasChildTrait = false;
+    if (hasParentLayer(layer.name)) {
+      for (var i = 0; i < pairLayer.length; i++) {
+        // subtract the current weight from the random weight until we reach a sub zero value.
+        random -= pairLayer[i].weight;
+        if (random < 0) {
 
-        return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}${
-            layer.bypassDNA ? "?bypassDNA=true" : ""
-          }`
-        );
+          if (hasChildLayerBool) {
+            let childTraitAndLayer = getChildTraitsAndLayer(pairLayer[i].name, layer.name);
+            //console.log("childTraitAndLayer: ",childTraitAndLayer);
+            childTraitAndLayer.forEach((element) => {
+              childTraits.push(element.childTrait);
+            })
+
+            hasChildLayerBool = false;
+          }
+          
+          pairLayer = backupPairLayer;
+          return randNum.push(
+            `${pairLayer[i].id}:${pairLayer[i].filename}${layer.bypassDNA ? "?bypassDNA=true" : ""
+            }`
+          );
+        }
+      }
+    }
+    else {
+      for (var i = 0; i < layer.elements.length; i++) {
+        // subtract the current weight from the random weight until we reach a sub zero value.
+        random -= layer.elements[i].weight;
+        if (random < 0) {
+          // //pair traits based on pairTraitConfig
+          // if(hasChildLayer(layer.name)) {
+          //   //const childPair = getChildTraits(layer.elements[i].name);
+          //   //traitPair.set(layer.elements[i].name, childPair);
+          // }
+
+          //might need to move this to before trait was selected
+          if (hasChildLayerBool) {
+            let childTraitAndLayer = getChildTraitsAndLayer(layer.elements[i].name, layer.name);
+            //console.log("childTraitAndLayer: ", childTraitAndLayer);
+            childTraitAndLayer.forEach((element) => {
+              element.childTrait.forEach((childTrait => {
+                childTraits.push(childTrait);
+              }))
+            })
+            // if(childTraits) {
+            //   parentChildTraitMapping.set(layer.elements[i].name, childTraits);
+
+            // }
+            hasChildLayerBool = false;
+          }
+
+          return randNum.push(
+            `${layer.elements[i].id}:${layer.elements[i].filename}${layer.bypassDNA ? "?bypassDNA=true" : ""
+            }`
+          );
+        }
       }
     }
   });
+  //console.log("\n\n");
   return randNum.join(DNA_DELIMITER);
 };
 
@@ -342,8 +411,8 @@ const saveMetaDataSingleFile = (_editionCount) => {
   let metadata = metadataList.find((meta) => meta.edition == _editionCount);
   debugLogs
     ? console.log(
-        `Writing metadata for ${_editionCount}: ${JSON.stringify(metadata)}`
-      )
+      `Writing metadata for ${_editionCount}: ${JSON.stringify(metadata)}`
+    )
     : null;
   fs.writeFileSync(
     `${buildDir}/json/${_editionCount}.json`,
@@ -461,11 +530,23 @@ const startCreating = async () => {
 };
 
 function hasChildLayer(_layersName) {
+  let hasChild = false;
+  pairTraitConfig.forEach(function (trait) {
+    //console.log(`Checking for layer: ${_layersName}, hasChildLayer: ${_layersName == trait.parentLayer}`);
+    if (_layersName == trait.parentLayer) {
+      hasChild = true;
+      return hasChild;
+    }
+  })
+  return hasChild;
+};
+
+function hasParentLayer(_layersName) {
   let hasParent = false;
-  pairTraitConfig.forEach(function(trait) {
-    console.log(_layersName == trait.parentlayer)
-    if(_layersName == trait.parentLayer) {
-      hasParent =  true;
+  pairTraitConfig.forEach(function (trait) {
+    //console.log(`Checking for layer: ${_layersName}, hasParentLayer: ${_layersName == trait.childLayer} \n`);
+    if (_layersName == trait.childLayer) {
+      hasParent = true;
       return hasParent;
     }
   })
@@ -474,30 +555,151 @@ function hasChildLayer(_layersName) {
 
 function getChildLayer(_parentLayer) {
   let childTraits = [];
-  pairTraitConfig.forEach(function(trait) {
-    if (_parentLayer === trait._parentLayer) {
+  pairTraitConfig.forEach(function (trait) {
+    if (_parentLayer == trait._parentLayer) {
       childTraits.push(trait.childLayer);
     }
   });
-  console.log("parentTraits: ", _parentLayer);
-  console.log("childTraits: ", childTraits);
+  //console.log("parentTraits: ", _parentLayer);
+  //console.log("childTraits: ", childTraits);
   return childTraits;
 }
 
-function getChildTraits(_parentTrait) {
-  let childTraits = [];
-  pairTraitConfig.forEach(function(trait) {
-    trait.pairConfig.forEach(function(pair) {
-      if (_parentTrait === pair.parentTrait) {
-        childTraits = pair.childTrait;
+function getChildTraitsAndLayer(_parentTrait, _parentLayer) {
+  //console.log(`_parentTrait: ${_parentTrait}, _parentLayer: ${_parentLayer}`);
+  let childTraitAndLayerStruct = {
+    childTrait: "",
+    childLayer: ""
+  }
+  let childTraitAndLayer = [];
+  pairTraitConfig.forEach(function (trait) {
+    trait.pairConfig.forEach(function (pair) {
+      //console.log("pair: ", pair)
+      if (_parentTrait == pair.parentTrait && _parentLayer == trait.parentLayer) {
+        childTraitAndLayerStruct.childTrait = pair.childTrait;
+        childTraitAndLayerStruct.childLayer = trait.childLayer;
+        childTraitAndLayer.push(childTraitAndLayerStruct);
       }
     });
   });
-  console.log("parentTraits: ", _parentTrait);
-  console.log("childTraits: ", childTraits);
-  return childTraits;
+  //console.log("parentTraits: ", _parentTrait);
+  //console.log("childTraits: ", childTraits);
+  return childTraitAndLayer;
 }
 
+//Need modification for all function that accepts input from a trait
+//Need to consider different pairConfig that has name as childTrait from from different layer
+//all input need to has childTrait and childLayer as a mapping to determine ParentLayer/Parent trait, and vice versa
+function getParentTraitsAndLayer(_childTrait, _childLayer) {
+  let parentTraitAndLayerStruct = {
+    parentTrait: "",
+    parentLayer: ""
+  }
+  let parentTraitAndLayer = [];
+  pairTraitConfig.forEach((trait) => {
+    trait.pairConfig.forEach((pair) => {
+      pair.childTrait.forEach((childTrait => {
+        if (_childTrait == childTrait && _childLayer == trait.childLayer) {
+          //console.log("childTrait:", childTrait);
+          parentTraitAndLayerStruct.parentTrait = pair.parentTrait;
+          parentTraitAndLayerStruct.parentLayer = trait.parentLayer;
+          parentTraitAndLayer.push(parentTraitAndLayerStruct);
+        }
+      }))
+    })
+  })
+
+  return parentTraitAndLayer;
+}
+
+// function getLayerProbability(_layer) {
+//   let probability = [];
+//   let totalWeight = 0;
+//   _layer.elements.forEach((element) => {
+//     totalWeight += element.weight;
+//   })
+
+//   _layer.elements.forEach((element) => {
+//     probability.push(element.weight/totalWeight);
+//   })
+
+//   console.log("return: ", probability)
+//   return probability;
+// }
+
+// function getTraitProbability(_trait, _layer) {
+//   let totalWeight = 0;
+//   let traitProbability = 0;
+//   _layer.forEach((layer) => {
+//     layer.elements.forEach((element) => {
+//       totalWeight += element.weight;
+//     })
+
+//     layer.elements.forEach((element) => {
+//       if(element.name == _trait) {
+//         console.log("totalWeight: ", totalWeight);
+//         console.log("trait: ", _trait);
+//         traitProbability = element.weight/totalWeight;
+//         console.log("traitProbability: ", traitProbability);
+//         return traitProbability;
+//       }
+//     })
+//     totalWeight = 0;
+//   })
+//   return traitProbability;
+// }
+
+function getTraitProbabilityFromLayer(_trait, _layer, _layers) {
+  let totalWeight = 0;
+  let traitProbability = 0;
+  _layers.forEach((layer) => {
+    if (layer.name == _layer) {
+      layer.elements.forEach((element) => {
+        //console.log(`element name: ${element.name}, element weight: ${element.weight}`);
+        totalWeight += element.weight;
+      })
+
+      layer.elements.forEach((element) => {
+        if (element.name == _trait) {
+          // console.log("totalWeight: ", totalWeight);
+          // console.log("trait: ", _trait);
+          traitProbability = element.weight / totalWeight;
+          // console.log("traitProbability: ", traitProbability);
+          // console.log("\n");
+          return traitProbability;
+        }
+      })
+    }
+  })
+  return traitProbability;
+}
+
+function adjustWeight(_childTrait, _childLayer, _layers) {
+  let parentTraitAndLayer = [];
+  let sumParentTraitProbability = 0;
+  let childTraitProbability = 0;
+
+  //Find all parent layer
+  //Get all probability of all parent layer
+  //Adjusted probability = desired probability/Sum of probability of parent trait
+
+  //sum of propability of all parent traits
+  parentTraitAndLayer = getParentTraitsAndLayer(_childTrait, _childLayer);
+  parentTraitAndLayer.forEach(trait => {
+    sumParentTraitProbability += getTraitProbabilityFromLayer(trait.parentTrait, trait.parentLayer, _layers);
+  })
+  // console.log("sumParentTraitProbability: ", sumParentTraitProbability);
+  // console.log("_childTrait: ", _childTrait);
+  // console.log("_childLayer: ", _childLayer);
+  childTraitProbability = getTraitProbabilityFromLayer(_childTrait, _childLayer, _layers);
+  //console.log("childTraitProbability: ", childTraitProbability);
+
+  let adjustedProbability = childTraitProbability/sumParentTraitProbability;
+  //4 zeroes because accuracy required is up to 4 Significant figures, can be change in the future
+  let adjustWeight = adjustedProbability*10000;
+  //console.log("adjustedWeight: ", adjustWeight);
+  return adjustWeight;
+}
 // function getChildTraits(_parentTrait) {
 //   let childTraits = [];
 //   pairTraitConfig.forEach(function(trait) {
